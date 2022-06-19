@@ -35,7 +35,7 @@ class ThiefClass(UnitClass):
     skill: Skill = hard_shot
 
 
-unit_classes: Dict[str, type[UnitClass]] = {
+unit_classes = {
     ThiefClass.name: ThiefClass,
     WarriorClass.name: WarriorClass
 }

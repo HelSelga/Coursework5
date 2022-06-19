@@ -1,3 +1,5 @@
+from typing import Optional
+
 from unit import BaseUnit
 
 
@@ -16,54 +18,57 @@ class Arena(metaclass=BaseSingleton):
     player = None
     enemy = None
     game_is_running = False
+    game_results = ''
 
     def start_game(self, player: BaseUnit, enemy: BaseUnit):
-        # TODO НАЧАЛО ИГРЫ -> None
-        # TODO присваиваем экземпляру класса аттрибуты "игрок" и "противник"
-        # TODO а также выставляем True для свойства "началась ли игра"
-        pass
+        self.player = player
+        self.enemy = enemy
+        self.game_is_running = True
 
-    def _check_players_hp(self):
-        # TODO ПРОВЕРКА ЗДОРОВЬЯ ИГРОКА И ВРАГА
-        # TODO проверка здоровья игрока и врага и возвращение результата строкой:
-        # TODO может быть три результата:
-        # TODO Игрок проиграл битву, Игрок выиграл битву, Ничья и сохраняем его в аттрибуте (self.battle_result)
-        # TODO если Здоровья игроков в порядке то ничего не происходит
-        pass
+    def _check_players_hp(self) -> Optional[str]:
+        if self.player.hp <= 0 and self.enemy.hp <= 0:
+            return self._end_game(results='Ничья')
+        elif self.player.hp <= 0:
+            return self._end_game(results='Игрок проиграл битву')
+        elif self.enemy.hp <= 0:
+            return self._end_game(results='Игрок выиграл битву')
+        else:
+            return None
 
     def _stamina_regeneration(self):
-        # TODO регенерация здоровья и стамины для игрока и врага за ход
-        # TODO в этом методе к количеству стамины игрока и врага прибавляется константное значение.
-        # TODO главное чтобы оно не привысило максимальные значения (используйте if)
-        pass
+        self.player.regenerate_stamina()
+        self.enemy.regenerate_stamina()
 
     def next_turn(self):
-        # TODO СЛЕДУЮЩИЙ ХОД -> return result | return self.enemy.hit(self.player)
-        # TODO срабатывает когда игроп пропускает ход или когда игрок наносит удар.
-        # TODO создаем поле result и проверяем что вернется в результате функции self._check_players_hp
-        # TODO если result -> возвращаем его
-        # TODO если же результата пока нет и после завершения хода игра продолжается,
-        # TODO тогда запускаем процесс регенирации стамины и здоровья для игроков (self._stamina_regeneration)
-        # TODO и вызываем функцию self.enemy.hit(self.player) - ответный удар врага
-        pass
+        if results := self._check_players_hp():
+            return results
+        if not self.game_is_running:
+            return self.game_results
+        dealt_damage: Optional[float] = self.enemy.hit(self.player)
+        if dealt_damage is not None:
+            self.player.get_damage(dealt_damage)
+            results = f"{self.player.name}, пробивает {self.enemy.armor.name} соперника и наносит {dealt_damage} урона."
+        else:
+            results = f"{self.player.name}, наносит удар, но {self.enemy.armor.name} cоперника его останавливает."
+        self._stamina_regeneration()
+        return results
 
-    def _end_game(self):
-        # TODO КНОПКА ЗАВЕРШЕНИЕ ИГРЫ - > return result: str
-        # TODO очищаем синглтон - self._instances = {}
-        # TODO останавливаем игру (game_is_running)
-        # TODO возвращаем результат
-        pass
+    def _end_game(self, results: str):
+        self.game_is_running = False
+        self._instances = {}
+        self.game_results = results
+        return results
 
     def player_hit(self):
-        # TODO КНОПКА УДАР ИГРОКА -> return result: str
-        # TODO получаем результат от функции self.player.hit
-        # TODO запускаем следующий ход
-        # TODO возвращаем результат удара строкой
-        pass
+        dealt_damage = self.player.hit(self.enemy)
+        if dealt_damage is not None:
+            self.enemy.get_damage(dealt_damage)
+            return f"<p>{self.enemy.name} получает {dealt_damage} урона</p><p>{self.next_turn()}</p>"
+        return f"<p>Не хватило выносливости использовать {self.player.weapon.name}</p><p>{self.next_turn()}</p>"
 
     def player_use_skill(self):
-        # TODO КНОПКА ИГРОК ИСПОЛЬЗУЕТ УМЕНИЕ
-        # TODO получаем результат от функции self.use_skill
-        # TODO включаем следующий ход
-        # TODO возвращаем результат удара строкой
-        pass
+        dealt_damage: Optional[int] = self.player.use_skill()
+        if dealt_damage is not None:
+            self.enemy.get_damage(dealt_damage)
+            return f"<p>Навык {self.player.unit_class.skill.name} использован, нанесено {dealt_damage} урона </p><p>{self.next_turn()}</p>"
+        return f"<p>Не хватило выносливости использовать навык<p><p>{self.next_turn()}</p>"
