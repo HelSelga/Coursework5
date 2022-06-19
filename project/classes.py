@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from skills import HardShot, FuryPunch, Skill
+from typing import Dict
+
+from skills import Skill, fury_punch, hard_shot
 
 
 @dataclass
@@ -13,27 +15,27 @@ class UnitClass:
     skill: Skill
 
 
-WarriorClass = UnitClass(
-    name="Воин",
-    max_health=60.0,
-    max_stamina=30.0,
-    attack=0.8,
-    stamina=0.9,
-    armor=1.2,
-    skill=FuryPunch()
-)
+class WarriorClass(UnitClass):
+    name: str = "Воин"
+    max_health: float = 60.0
+    max_stamina: float = 30.0
+    attack: float = 0.8
+    stamina: float = 0.9
+    armor: float = 1.2
+    skill: Skill = fury_punch
 
-ThiefClass = UnitClass(
-    name="Вор",
-    max_health=50.0,
-    max_stamina=25.0,
-    attack=1.5,
-    stamina=1.2,
-    armor=1.0,
-    skill=HardShot()
-)
 
-unit_classes = {
+class ThiefClass(UnitClass):
+    name: str = "Вор"
+    max_health: float = 50.0
+    max_stamina: float = 25.0
+    attack: float = 1.5
+    stamina: float = 1.2
+    armor: float = 1.0
+    skill: Skill = hard_shot
+
+
+unit_classes: Dict[str, type[UnitClass]] = {
     ThiefClass.name: ThiefClass,
     WarriorClass.name: WarriorClass
 }

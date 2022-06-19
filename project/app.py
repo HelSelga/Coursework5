@@ -1,13 +1,19 @@
-from flask import render_template, Flask
+from flask import render_template, Flask, request, redirect
 
+from project.classes import unit_classes
 from project.unit import BaseUnit
+from project.utils import load_equipment
 
 app = Flask(__name__)
+app.url_map.strict_slashes = False
+
 
 heroes = {
     "player": BaseUnit,
     "enemy": BaseUnit
 }
+
+EQUIPMENT = load_equipment()
 
 arena =  ... # TODO инициализируем класс арены
 
@@ -15,6 +21,37 @@ arena =  ... # TODO инициализируем класс арены
 @app.route("/")
 def menu_page():
     return render_template('index.html')
+
+
+@app.route("/choose-hero/", methods=["GET", "POST"])
+def choose_hero():
+    if request.method == "GET":
+        return render_template(
+            'hero_choosing.html',
+            header="Выберите героя",
+            classes=unit_classes.values(),
+            equipment=EQUIPMENT,
+            next_button="Выбрать врага"
+        )
+    if request.method == "POST":
+        ...
+    return redirect('/choose-enemy')
+
+
+@app.route("/choose-enemy/", methods=["GET", "POST"])
+def choose_enemy():
+    if request.method == "GET":
+        return render_template(
+            'hero_choosing.html',
+            header="Выберите врага",
+            classes=unit_classes.values(),
+            equipment=EQUIPMENT,
+            next_button="Начать сражение"
+        )
+    if request.method == "POST":
+        ...
+    return redirect('/fight')
+
 
 
 @app.route("/fight/")
@@ -52,22 +89,6 @@ def pass_turn():
 def end_fight():
     # TODO кнопка завершить игру - переход в главное меню
     return render_template("index.html", heroes=heroes)
-
-
-@app.route("/choose-hero/", methods=['post', 'get'])
-def choose_hero():
-    # TODO кнопка выбор героя. 2 метода GET и POST
-    # TODO на GET отрисовываем форму.
-    # TODO на POST отправляем форму и делаем редирект на эндпоинт choose enemy
-    pass
-
-
-@app.route("/choose-enemy/", methods=['post', 'get'])
-def choose_enemy():
-    # TODO кнопка выбор соперников. 2 метода GET и POST
-    # TODO также на GET отрисовываем форму.
-    # TODO а на POST отправляем форму и делаем редирект на начало битвы
-    pass
 
 
 if __name__ == "__main__":

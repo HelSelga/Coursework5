@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from typing import List
 from random import uniform
-import marshmallow_dataclass
-import marshmallow
-import json
 
 
 @dataclass
@@ -32,17 +29,14 @@ class EquipmentData:
     weapons: List[Weapon]
     armors: List[Armor]
 
-    def __init__(self):
-        self.equipment = self._get_equipment_data()
-
     def get_weapon(self, weapon_name: str) -> Weapon:
-        for weapon in self.equipment.weapons:
+        for weapon in self.weapons:
             if weapon.name == weapon_name:
                 return weapon
         return None
 
     def get_armor(self, armor_name: str) -> Armor:
-        for armor in self.equipment.armors:
+        for armor in self.armors:
             if armor.name == armor_name:
                 return armor
         return None
@@ -54,10 +48,3 @@ class EquipmentData:
     @property
     def get_armors_names(self) -> List[str]:
         return [armor.name for armor in self.armors]
-
-    @staticmethod
-    def _get_equipment_data():
-        with open("./data/equipment.json") as f:
-            data = json.load(f)
-            equipment_schema = marshmallow_dataclass.class_schema(EquipmentData)
-            return equipment_schema().load(data)
