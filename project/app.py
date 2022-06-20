@@ -21,17 +21,16 @@ EQUIPMENT = load_equipment()
 
 arena = Arena()
 
-
-def game_processing(func):
-    @wraps
-    def wrapper(*args, **kwargs):
-        if arena.game_is_running:
-            return func(*args, **kwargs)
-        if arena.game_results:
-            return render_template('fight.html', heroes=heroes, result=arena.game_results)
-        return redirect('/index')
-    return wrapper
-
+#
+# def game_processing(func):
+#     @wraps
+#     def wrapper(*args, **kwargs):
+#         if arena.game_is_running:
+#             return func(*args, **kwargs)
+#         if arena.game_results:
+#             return render_template('fight.html', heroes=heroes, result=arena.game_results)
+#         return redirect('/index')
+#     return wrapper
 
 @app.route("/")
 def menu_page():
@@ -81,32 +80,41 @@ def choose_enemy():
 @app.route("/fight/")
 def start_fight():
     if 'player' in heroes and 'enemy' in heroes:
-        return render_template('fight.html', heroes=heroes, result='Бой начался!')
         arena.start_game(**heroes)
+        return render_template('fight.html', heroes=heroes, result='Бой начался!')
     return redirect('/index')
 
 
 @app.route("/fight/hit")
-@game_processing
 def hit():
-    return render_template('fight.html', heroes=heroes, result=arena.player_hit())
+    if arena.game_is_running:
+        return render_template('fight.html', heroes=heroes, result=arena.player_hit())
+    if arena.game_results:
+        return render_template('fight.html', heroes=heroes, result=arena.game_results)
+    return redirect('/index')
 
 
 @app.route("/fight/use-skill")
-@game_processing
 def use_skill():
-    return render_template('fight.html', heroes=heroes, result=arena.player_use_skill())
+    if arena.game_is_running:
+        return render_template('fight.html', heroes=heroes, result=arena.player_use_skill())
+    if arena.game_results:
+        return render_template('fight.html', heroes=heroes, result=arena.game_results)
+    return redirect('/index')
 
 
 @app.route("/fight/pass-turn")
-@game_processing
 def pass_turn():
-    return render_template('fight.html', heroes=heroes, result=arena.next_turn())
+    if arena.game_is_running:
+        return render_template('fight.html', heroes=heroes, result=arena.next_turn())
+    if arena.game_results:
+        return render_template('fight.html', heroes=heroes, result=arena.game_results)
+    return redirect('/index')
 
 
 @app.route("/fight/end-fight")
 def end_fight():
-    return redirect("/index")
+    return redirect("/")
 
 
 if __name__ == "__main__":
