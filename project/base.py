@@ -14,7 +14,7 @@ class BaseSingleton(type):
 
 
 class Arena(metaclass=BaseSingleton):
-    STAMINA_PER_ROUND = 1
+    STAMINA_PER_ROUND = 0.5
     player = None
     enemy = None
     game_is_running = False
@@ -28,12 +28,11 @@ class Arena(metaclass=BaseSingleton):
     def _check_players_hp(self) -> Optional[str]:
         if self.player.hp <= 0 and self.enemy.hp <= 0:
             return self._end_game(results='Ничья')
-        elif self.player.hp <= 0:
+        if self.player.hp <= 0:
             return self._end_game(results='Игрок проиграл битву')
-        elif self.enemy.hp <= 0:
+        if self.enemy.hp <= 0:
             return self._end_game(results='Игрок выиграл битву')
-        else:
-            return None
+        return None
 
     def _stamina_regeneration(self):
         self.player.regenerate_stamina()
@@ -44,12 +43,7 @@ class Arena(metaclass=BaseSingleton):
             return results
         if not self.game_is_running:
             return self.game_results
-        dealt_damage: Optional[float] = self.enemy.hit(self.player)
-        if dealt_damage is not None:
-            self.player.get_damage(dealt_damage)
-            results = f"{self.player.name}, пробивает {self.enemy.armor.name} соперника и наносит {dealt_damage} урона."
-        else:
-            results = f"{self.player.name}, наносит удар, но {self.enemy.armor.name} cоперника его останавливает."
+        results = self.enemy_hit()
         self._stamina_regeneration()
         return results
 
@@ -59,15 +53,26 @@ class Arena(metaclass=BaseSingleton):
         self.game_results = results
         return results
 
-    def player_hit(self):
-        dealt_damage = self.player.hit(self.enemy)
+    def enemy_hit(self) -> str:
+        dealt_damage: Optional[float] = self.enemy.hit(self.player)
+        if dealt_damage is not None:
+            self.player.get_damage(dealt_damage)
+            results = f"{self.enemy.name} пробивает {self.player.armor.name} соперника и наносит {dealt_damage} урона."
+        else:
+            results = f"{self.enemy.name} не хватило выносливости использовать {self.enemy.weapon.name}"
+        return results
+
+    def player_hit(self) -> str:
+        dealt_damage: Optional[float] = self.player.hit(self.enemy)
         if dealt_damage is not None:
             self.enemy.get_damage(dealt_damage)
-            return f"<p>{self.enemy.name} получает {dealt_damage} урона</p><p>{self.next_turn()}</p>"
-        return f"<p>Не хватило выносливости использовать {self.player.weapon.name}</p><p>{self.next_turn()}</p>"
+            results = f"<p>{self.enemy.name} получает {dealt_damage} урона</p><p>{self.next_turn()}</p>"
+        else:
+            results = f"<p>Не хватило выносливости использовать {self.player.weapon.name}</p><p>{self.next_turn()}</p>"
+        return results
 
-    def player_use_skill(self):
-        dealt_damage: Optional[int] = self.player.use_skill()
+    def player_use_skill(self) -> str:
+        dealt_damage: Optional[float] = self.player.use_skill()
         if dealt_damage is not None:
             self.enemy.get_damage(dealt_damage)
             return f"<p>Навык {self.player.unit_class.skill.name} использован, нанесено {dealt_damage} урона </p><p>{self.next_turn()}</p>"

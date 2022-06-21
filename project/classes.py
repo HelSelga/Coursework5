@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Type
 
 from skills import Skill, fury_punch, hard_shot
 
@@ -35,7 +35,7 @@ class ThiefClass(UnitClass):
     skill: Skill = hard_shot
 
 
-unit_classes = {
+unit_classes: Dict[str, UnitClass] = {
     ThiefClass.name: ThiefClass,
     WarriorClass.name: WarriorClass
 }

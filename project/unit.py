@@ -7,7 +7,7 @@ from classes import UnitClass
 from random import randint
 from typing import Optional
 
-base_reuse_stamina = 1
+base_reuse_stamina = 0.5
 
 
 class BaseUnit(ABC):
@@ -15,9 +15,6 @@ class BaseUnit(ABC):
     Базовый класс юнита
     """
     def __init__(self, name: str, unit_class: UnitClass, weapon: Weapon, armor: Armor):
-        """
-        При инициализации класса Unit используем свойства класса UnitClass
-        """
         self.name = name
         self.unit_class = unit_class
         self.hp = self.unit_class.max_health
@@ -51,23 +48,24 @@ class BaseUnit(ABC):
         return f"{self.name} экипирован броней {self.armor.name}"
 
     @property
-    def total_armor(self):
+    def _total_armor(self):
         if self.stamina - self.armor.stamina_per_turn >= 0:
             return round(self.armor.defence * self.unit_class.armor, 1)
         return 0
 
-    def count_damage(self, target: BaseUnit) -> float:
+    def _count_damage(self, target: BaseUnit) -> float:
         if self.stamina - self.weapon.stamina_per_hit < 0:
             return None
         hero_damage = self.weapon.damage * self.unit_class.attack
-        dealt_damage = hero_damage - target.total_armor
+        dealt_damage = hero_damage - target._total_armor
 
         if dealt_damage < 0:
             return 0
-        self.stamina -= self.weapon.stamina_per_hit
-        return round(dealt_damage, 1)
+        else:
+            self.stamina -= self.weapon.stamina_per_hit
+            return round(dealt_damage, 1)
 
-    def get_damage(self, damage: int):
+    def get_damage(self, damage: float):
         self.hp -= damage
         if self.hp < 0:
             self.hp = 0
@@ -78,28 +76,25 @@ class BaseUnit(ABC):
             self.stamina += delta_stamina
         else:
             self.stamina = self.unit_class.max_stamina
-        return self.stamina
 
     @abstractmethod
     def hit(self, target: BaseUnit) -> Optional[float]:
         pass
 
-    def use_skill(self) -> Optional[int]:
+    def use_skill(self) -> Optional[float]:
         if not self._is_skill_used and self.stamina >= self.unit_class.skill.stamina:
             self._is_skill_used = True
-            damage = round(self.unit_class.skill.damage, 1)
-            return damage
+            return round(self.unit_class.skill.damage, 1)
         return None
 
 
 class PlayerUnit(BaseUnit):
     def hit(self, target: BaseUnit) -> Optional[float]:
-        return self.count_damage(target)
+        return self._count_damage(target)
 
 
 class EnemyUnit(BaseUnit):
     def hit(self, target: BaseUnit) -> Optional[float]:
         if randint(0, 100) < 10 and self.stamina >= self.unit_class.skill.stamina and not self._is_skill_used:
             self.use_skill()
-        return self.count_damage(target)
-
+        return self._count_damage(target)
