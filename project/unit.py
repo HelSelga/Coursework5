@@ -84,6 +84,7 @@ class BaseUnit(ABC):
     def use_skill(self) -> Optional[float]:
         if not self._is_skill_used and self.stamina >= self.unit_class.skill.stamina:
             self._is_skill_used = True
+            self.stamina -= self.unit_class.skill.stamina
             return round(self.unit_class.skill.damage, 1)
         return None
 
@@ -96,5 +97,6 @@ class PlayerUnit(BaseUnit):
 class EnemyUnit(BaseUnit):
     def hit(self, target: BaseUnit) -> Optional[float]:
         if randint(0, 100) < 10 and self.stamina >= self.unit_class.skill.stamina and not self._is_skill_used:
-            self.use_skill()
-        return self._count_damage(target)
+            return self.use_skill()
+        else:
+            return self._count_damage(target)
