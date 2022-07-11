@@ -1,12 +1,11 @@
-from functools import wraps
-from typing import Dict, Type
+from typing import Dict
 
 from flask import render_template, Flask, request, redirect
 
-from project.base import Arena
-from project.classes import unit_classes
-from project.unit import BaseUnit, PlayerUnit, EnemyUnit
-from project.utils import load_equipment
+from base import Arena
+from classes import unit_classes
+from unit import BaseUnit, PlayerUnit, EnemyUnit
+from utils import load_equipment
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
