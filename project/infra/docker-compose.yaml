@@ -4,7 +4,12 @@ services:
 
   app:
     build: ..
-    command: gunicorn --bind 0.0.0.0:5000 wsgi:app
+    volumes:
+      - ./project/:/code/project/
+    environment:
+      FLASK_APP: "app.py"
+      FLASK_ENV: 'development'
+    command: flask run -h 0.0.0.0 -p 5000
     restart: always
 
   nginx:
